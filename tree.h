@@ -16,7 +16,10 @@ struct node{
 };
 
 void print_address_binary(uint32_t addr);
+void assert_tree(node* node);
+
+void delete_prefix(node* prefix);
 uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max = 32);
-void add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop);
+node* add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop);
 
 #endif //TEST_RIB_TREE_TREE_H

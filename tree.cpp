@@ -14,6 +14,55 @@ void print_address_binary(uint32_t addr){
     printf("\n");
 }
 
+void assert_tree(node* node){
+    if(node->node_0 != nullptr){
+        if(node->node_0->prefix_len != node->prefix_len + 1){
+            printf("Invalid prefix length %d and %d\n", node->node_0->prefix_len, node->prefix_len);
+        }else{
+            printf("Assert OK\n");
+        }
+        assert_tree(node->node_0);
+    }
+    if(node->node_1 != nullptr){
+        if(node->node_1->prefix_len != node->prefix_len + 1){
+            printf("Invalid prefix length %d and %d\n", node->node_1->prefix_len, node->prefix_len);
+        }else{
+            printf("Assert OK\n");
+        }
+        assert_tree(node->node_1);
+    }
+}
+
+void delete_prefix(node* prefix){
+    prefix->is_prefix = false; // 削除対象のプレフィックスはプレフィックス扱いしない
+    if(prefix->node_1 != nullptr and prefix->node_0 == nullptr){
+        return delete_prefix(prefix->node_1);
+    }
+    if(prefix->node_0 != nullptr and prefix->node_1 == nullptr){
+        return delete_prefix(prefix->node_0);
+    }
+    node* tmp;
+    if(prefix->node_1 != nullptr and prefix->node_0 != nullptr){
+        tmp = prefix->node_1;
+        prefix->node_1 = nullptr;
+        delete_prefix(prefix);
+        return delete_prefix(tmp);
+    }
+    node* current = prefix;
+    while(!current->is_prefix and current->parent != nullptr and (current->parent->node_0 == nullptr or current->parent->node_1 == nullptr)){
+        printf("Release: %d\n", current->prefix_len);
+        tmp = current->parent;
+        if(current->parent->node_1 == current){
+            current->parent->node_1 = nullptr;
+        }else{
+            current->parent->node_0 = nullptr;
+        }
+        free(current);
+        current = tmp;
+    }
+
+}
+
 uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max){
     node* current = root;
     node* next;
@@ -35,7 +84,7 @@ uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max){
     return match_node->prefix_len;
 }
 
-void add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop){
+node* add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop){
     node* current;
     uint8_t res_prefix = search_prefix(root, address, current, prefix-1);
     res_prefix++;
@@ -81,4 +130,5 @@ void add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop)
     }else{
         current->node_0 = new_prefix;
     }
+    return new_prefix;
 }
