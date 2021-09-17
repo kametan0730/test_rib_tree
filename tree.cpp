@@ -116,18 +116,26 @@ node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_
         }
         res_prefix_len++;
     }
-    node* new_prefix = (node*) malloc(sizeof(node));
-    new_prefix->is_prefix = true;
-    new_prefix->prefix = prefix;
-    new_prefix->prefix_len = prefix_len;
-    new_prefix->next_hop = next_hop;
-    new_prefix->parent = current;
-    new_prefix->node_0 = nullptr;
-    new_prefix->node_1 = nullptr;
-    if(N_BIT(prefix, prefix_len - 1)){ // TODO このへん問題あると思うので、修正しなければ
-        current->node_1 = new_prefix;
+
+    if(N_BIT(prefix, prefix_len - 1)){
+        growth_address_ptr = &current->node_1;
     }else{
-        current->node_0 = new_prefix;
+        growth_address_ptr = &current->node_0;
     }
-    return new_prefix;
+    if((*growth_address_ptr) == nullptr){
+        node* new_prefix = (node*) malloc(sizeof(node));
+        new_prefix->is_prefix = true;
+        new_prefix->prefix = prefix;
+        new_prefix->prefix_len = prefix_len;
+        new_prefix->next_hop = next_hop;
+        new_prefix->parent = current;
+        new_prefix->node_0 = nullptr;
+        new_prefix->node_1 = nullptr;
+        *growth_address_ptr = new_prefix;
+    }else{
+        (*growth_address_ptr)->is_prefix = true;
+        (*growth_address_ptr)->next_hop = next_hop;
+    }
+
+    return *growth_address_ptr;
 }
