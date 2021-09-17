@@ -10,7 +10,7 @@ int main(){
 
     node root{
             .is_prefix = true,
-            .ip_address = 0,
+            .prefix = 0,
             .prefix_len = 0,
             .next_hop = 0,
             .parent = nullptr,

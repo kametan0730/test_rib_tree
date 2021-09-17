@@ -60,7 +60,6 @@ void delete_prefix(node* prefix){
         free(current);
         current = tmp;
     }
-
 }
 
 uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max){
@@ -84,14 +83,14 @@ uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max){
     return match_node->prefix_len;
 }
 
-node* add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop){
+node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_hop){
     node* current;
-    uint8_t res_prefix = search_prefix(root, address, current, prefix-1);
-    res_prefix++;
+    uint8_t res_prefix_len = search_prefix(root, prefix, current, prefix_len-1);
+    res_prefix_len++;
     node** growth_address_ptr;
-    while(res_prefix < prefix){ // 枝を伸ばす
-        printf("Create: %d\n", res_prefix);
-        if(N_BIT(address, res_prefix-1)){
+    while(res_prefix_len < prefix_len){ // 枝を伸ばす
+        printf("Create: %d\n", res_prefix_len);
+        if(N_BIT(prefix, res_prefix_len-1)){
             growth_address_ptr = &current->node_1;
         }else{
             growth_address_ptr = &current->node_0;
@@ -101,31 +100,31 @@ node* add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop
         }else{
             node* growth_node = (node*) malloc(sizeof(node));
             growth_node->is_prefix = false;
-            growth_node->ip_address = current->ip_address;
-            growth_node->prefix_len = res_prefix;
+            growth_node->prefix = current->prefix;
+            growth_node->prefix_len = res_prefix_len;
             growth_node->next_hop = 0;
             growth_node->parent = current;
             growth_node->node_0 = nullptr;
             growth_node->node_1 = nullptr;
-            if(N_BIT(address, res_prefix - 1)){
-                growth_node->ip_address |= (0x01 << (res_prefix));
+            if(N_BIT(prefix, res_prefix_len - 1)){
+                growth_node->prefix |= (0x01 << (res_prefix_len));
                 current->node_1 = growth_node;
             }else{
                 current->node_0 = growth_node;
             }
             current = growth_node;
         }
-        res_prefix++;
+        res_prefix_len++;
     }
     node* new_prefix = (node*) malloc(sizeof(node));
     new_prefix->is_prefix = true;
-    new_prefix->ip_address = address;
-    new_prefix->prefix_len = prefix;
+    new_prefix->prefix = prefix;
+    new_prefix->prefix_len = prefix_len;
     new_prefix->next_hop = next_hop;
     new_prefix->parent = current;
     new_prefix->node_0 = nullptr;
     new_prefix->node_1 = nullptr;
-    if(N_BIT(address, prefix - 1)){
+    if(N_BIT(prefix, prefix_len - 1)){ // TODO このへん問題あると思うので、修正しなければ
         current->node_1 = new_prefix;
     }else{
         current->node_0 = new_prefix;

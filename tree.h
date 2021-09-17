@@ -7,7 +7,7 @@
 
 struct node{
     bool is_prefix;
-    uint32_t ip_address;
+    uint32_t prefix;
     uint8_t prefix_len;
     uint32_t next_hop;
     node* parent;
@@ -20,6 +20,6 @@ void assert_tree(node* node);
 
 void delete_prefix(node* prefix);
 uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max = 32);
-node* add_prefix(node* root, uint32_t address, uint8_t prefix, uint32_t next_hop);
+node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_hop);
 
 #endif //TEST_RIB_TREE_TREE_H
