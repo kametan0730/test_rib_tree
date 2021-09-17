@@ -18,7 +18,7 @@ struct node{
 void print_address_binary(uint32_t addr);
 void assert_tree(node* node);
 
-void delete_prefix(node* prefix);
+void delete_prefix(node* prefix, bool is_delete_child_prefix = false);
 uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max = 32);
 node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_hop);
 

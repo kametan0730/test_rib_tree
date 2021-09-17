@@ -33,20 +33,23 @@ void assert_tree(node* node){
     }
 }
 
-void delete_prefix(node* prefix){
+void delete_prefix(node* prefix, bool is_delete_child_prefix){
     prefix->is_prefix = false; // 削除対象のプレフィックスはプレフィックス扱いしない
-    if(prefix->node_1 != nullptr and prefix->node_0 == nullptr){
-        return delete_prefix(prefix->node_1);
+    if(!is_delete_child_prefix and (prefix->node_1 != nullptr or prefix->node_0 != nullptr)){
+        return;
     }
-    if(prefix->node_0 != nullptr and prefix->node_1 == nullptr){
-        return delete_prefix(prefix->node_0);
+    if(is_delete_child_prefix and prefix->node_1 != nullptr and prefix->node_0 == nullptr){
+        return delete_prefix(prefix->node_1, true);
+    }
+    if(is_delete_child_prefix and prefix->node_0 != nullptr and prefix->node_1 == nullptr){
+        return delete_prefix(prefix->node_0, true);
     }
     node* tmp;
-    if(prefix->node_1 != nullptr and prefix->node_0 != nullptr){
+    if(is_delete_child_prefix and prefix->node_1 != nullptr and prefix->node_0 != nullptr){
         tmp = prefix->node_1;
         prefix->node_1 = nullptr;
-        delete_prefix(prefix);
-        return delete_prefix(tmp);
+        delete_prefix(prefix, true);
+        return delete_prefix(tmp, true);
     }
     node* current = prefix;
     while(!current->is_prefix and current->parent != nullptr and (current->parent->node_0 == nullptr or current->parent->node_1 == nullptr)){
