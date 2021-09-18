@@ -17,34 +17,32 @@ int main(){
     root->node_0 = nullptr;
     root->node_1 = nullptr;
 
-    /*
-    add_prefix(root, inet_addr("10.0.0.0"), 8, inet_addr("10.0.0.1"));
+    //add_prefix(root, inet_addr("10.0.0.0"), 8, inet_addr("10.0.0.1"));
     add_prefix(root, inet_addr("10.20.0.0"), 16, inet_addr("10.20.0.1"));
     add_prefix(root, inet_addr("10.20.30.0"), 24, inet_addr("10.20.30.1"));
-    add_prefix(root, inet_addr("10.20.31.0"), 24, inet_addr("10.20.30.1"));
+    add_prefix(root, inet_addr("10.20.31.0"), 24, inet_addr("10.20.31.1"));
     add_prefix(root, inet_addr("10.20.40.0"), 24, inet_addr("10.20.40.1"));
-    */
 
-    node* n1 = add_prefix(root, inet_addr("10.0.0.0"), 4, inet_addr("10.0.0.1"));
-    node* n2 = add_prefix(root, inet_addr("10.0.0.0"), 8, inet_addr("10.0.0.1"));
+    node* n1 = add_prefix(root, inet_addr("1.0.0.0"), 4, inet_addr("10.0.0.1"));
+    node* n2 = add_prefix(root, inet_addr("1.0.0.0"), 8, inet_addr("10.0.0.1"));
 
-    assert_tree(root);
+    // assert_tree(root);
 
-    node* res;
-    uint8_t prefix = search_prefix(root, inet_addr("10.20.30.1"), res);
+    node* res = search_prefix(root, inet_addr("10.20.30.1"));
+    uint8_t prefix_len = res->prefix_len;
 
-    printf("%d\n", prefix);
+    printf("%d\n", prefix_len);
     in_addr addr{
         .s_addr = res->next_hop
     };
     printf("%s\n", inet_ntoa(addr));
 
-    delete_prefix(n2);
+    delete_prefix(n1);
 
-    // delete_prefix(root);
+    delete_prefix(root, true);
 
-    assert_tree(root);
-
+    //assert_tree(root);
+    // TODO すべての出力をあってるかテストしたい
 
     return 0;
 }

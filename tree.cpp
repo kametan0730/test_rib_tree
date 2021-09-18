@@ -35,6 +35,7 @@ void assert_tree(node* node){
 
 void delete_prefix(node* prefix, bool is_delete_child_prefix){
     prefix->is_prefix = false; // 削除対象のプレフィックスはプレフィックス扱いしない
+    prefix->next_hop = 0;
     if(!is_delete_child_prefix and (prefix->node_1 != nullptr or prefix->node_0 != nullptr)){
         return;
     }
@@ -65,7 +66,7 @@ void delete_prefix(node* prefix, bool is_delete_child_prefix){
     }
 }
 
-uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max){
+node* search_prefix(node* root, uint32_t address, uint8_t max){
     node* current = root;
     node* next;
     node* match_node = root;
@@ -76,19 +77,17 @@ uint8_t search_prefix(node* root, uint32_t address, node*& result, uint8_t max){
         }
         next = (N_BIT(address, i) ? current->node_1 : current->node_0);
         if(next == nullptr){
-            result = match_node;
-            return match_node->prefix_len;
+            return match_node;
         }
         i++;
         current = next;
     }
-    result = match_node;
-    return match_node->prefix_len;
+    return match_node;
 }
 
 node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_hop){
-    node* current;
-    uint8_t res_prefix_len = search_prefix(root, prefix, current, prefix_len-1);
+    node* current = search_prefix(root, prefix, prefix_len-1);
+    uint8_t res_prefix_len = current->prefix_len;
     res_prefix_len++;
     node** growth_address_ptr;
     while(res_prefix_len < prefix_len){ // 枝を伸ばす
