@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
@@ -12,17 +13,6 @@ bool check_bit(uint32_t addr, uint8_t n){
 }
 
 void print_address_binary(uint32_t addr){
-    for(int i = 0; i < 32; ++i){
-        if(check_bit(addr, i)){
-            printf("1");
-        }else{
-            printf("0");
-        }
-    }
-    printf("\n");
-}
-
-void print_address_binary_2(uint32_t addr){
     for(int i = 31; i >= 0; --i){
         if(check_bit(addr, i)){
             printf("1");
@@ -55,7 +45,10 @@ void assert_tree(node* node){
  */
 void delete_prefix(node* prefix, bool is_delete_child_prefix){
     prefix->is_prefix = false; // 削除対象のプレフィックスはプレフィックス扱いしない
-    prefix->next_hop = 0;
+    if(prefix->path_attr != nullptr){
+        free(prefix->path_attr);
+        prefix->path_attr = nullptr;
+    }
     if(!is_delete_child_prefix and (prefix->node_1 != nullptr or prefix->node_0 != nullptr)){
         return;
     }
@@ -69,7 +62,7 @@ void delete_prefix(node* prefix, bool is_delete_child_prefix){
     if(is_delete_child_prefix and prefix->node_1 != nullptr and prefix->node_0 != nullptr){
         /*
         tmp = prefix->node_1; tmpをnode_1にするとなぜか全経路削除の時に free(): double free detected in tcache 2 でAbortedする
-        prefix->node_1 = nullptr;
+        prefix->node_1 = nullptr; 追記: いや、今でも発生する
         */
         tmp = prefix->node_0;
         prefix->node_0 = nullptr;
@@ -128,9 +121,10 @@ node* search_prefix(node* root, uint32_t address, uint8_t max_prefix_len, bool i
  * @param prefix 追加するアドレスプレフィックス
  * @param prefix_len 追加するアドレスプレフィックスのプレフィックス長
  * @param next_hop 追加するネクストホップ
+ * @param is_updated 呼び出し元に経路の更新だったのか追加だったのかを知らせる
  * @return
  */
-node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_hop){
+node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, attribute path_attr, bool* is_updated){
     node* current = search_prefix(root, prefix, prefix_len-1);
     uint8_t current_prefix_len = current->prefix_len;
 #ifdef TEST_RIB_TREE_TEST_TREE
@@ -154,7 +148,7 @@ node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_
             growth_node->is_prefix = false;
             growth_node->prefix = current->prefix;
             growth_node->prefix_len = current_prefix_len+1;
-            growth_node->next_hop = 0;
+            growth_node->path_attr = nullptr;
             growth_node->parent = current;
             growth_node->node_0 = nullptr;
             growth_node->node_1 = nullptr;
@@ -192,17 +186,27 @@ node* add_prefix(node* root, uint32_t prefix, uint8_t prefix_len, uint32_t next_
         printf("CreateP: %s/%d, %p\n", inet_ntoa(in_addr{.s_addr = htonl(new_prefix->prefix)}), prefix_len, new_prefix);
 #endif
         new_prefix->prefix_len = prefix_len;
-        new_prefix->next_hop = next_hop;
+        new_prefix->path_attr = (attribute*) malloc(sizeof(attribute));
+        memcpy(new_prefix->path_attr, &path_attr, sizeof(attribute));
         new_prefix->parent = current;
         new_prefix->node_0 = nullptr;
         new_prefix->node_1 = nullptr;
         *growth_address_ptr = new_prefix;
+        if(is_updated != nullptr){
+            *is_updated = false;
+        }
     }else{
 #ifdef TEST_RIB_TREE_TEST_TREE
         printf("Exist: %s/%d, %p\n", inet_ntoa(in_addr{.s_addr = htonl(prefix)}), prefix_len, (*growth_address_ptr));
 #endif
         (*growth_address_ptr)->is_prefix = true;
-        (*growth_address_ptr)->next_hop = next_hop;
+        if((*growth_address_ptr)->path_attr == nullptr){
+            (*growth_address_ptr)->path_attr = (attribute*) malloc(sizeof(attribute));
+        }
+        memcpy((*growth_address_ptr)->path_attr, &path_attr, sizeof(attribute));
+        if(is_updated != nullptr){
+            *is_updated = true;
+        }
     }
 
     return *growth_address_ptr;
