@@ -216,7 +216,16 @@ node<DATA_TYPE>* add_prefix(node<DATA_TYPE>* root, uint32_t prefix, uint8_t pref
 #ifdef TEST_RIB_TREE_TEST_TREE
         printf("Exist: %s/%d, %p\n", inet_ntoa(in_addr{.s_addr = htonl(prefix)}), prefix_len, (*growth_address_ptr));
 #endif
-        (*growth_address_ptr)->is_prefix = true;
+        if((*growth_address_ptr)->is_prefix){
+            if(is_updated != nullptr){
+                *is_updated = true; // 書き込み先のノードがもともとプレフィックスだったら、それは経路の更新である
+            }
+        }else{
+            (*growth_address_ptr)->is_prefix = true;
+            if(is_updated != nullptr){
+                *is_updated = false; // 書き込み先のノードがもともとプレフィックスでなかったら、それは経路の追加である
+            }
+        }
         if((*growth_address_ptr)->data == nullptr){
             (*growth_address_ptr)->data = (DATA_TYPE*) malloc(sizeof(DATA_TYPE));
             if((*growth_address_ptr)->data == nullptr){
@@ -225,9 +234,6 @@ node<DATA_TYPE>* add_prefix(node<DATA_TYPE>* root, uint32_t prefix, uint8_t pref
             }
         }
         memcpy((*growth_address_ptr)->data, &data, sizeof(DATA_TYPE));
-        if(is_updated != nullptr){
-            *is_updated = true;
-        }
     }
 
     return *growth_address_ptr;
