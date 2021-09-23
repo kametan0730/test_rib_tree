@@ -11,14 +11,6 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
-struct attribute{
-    uint8_t origin;
-    uint32_t next_hop;
-    uint32_t med;
-    uint32_t local_pref;
-    // attribute* next; // TODO 複数の属性を持たせられるように
-};
-
 template <typename DATA_TYPE>
 struct node{
     bool is_prefix = false;
@@ -106,7 +98,7 @@ void delete_prefix(node<DATA_TYPE>* prefix, bool is_delete_child_prefix = false)
  * @return　
  */
 template <typename DATA_TYPE>
-node<DATA_TYPE>* search_prefix(node<DATA_TYPE>* root, uint32_t address, uint8_t max_prefix_len, bool is_prefix_strict = false){
+node<DATA_TYPE>* search_prefix(node<DATA_TYPE>* root, uint32_t address, uint8_t max_prefix_len = 32, bool is_prefix_strict = false){
     node<DATA_TYPE>* current = root;
     node<DATA_TYPE>* next;
     node<DATA_TYPE>* match_node = root;

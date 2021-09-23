@@ -4,6 +4,14 @@
 
 #include "tree.h"
 
+struct attribute{
+    uint8_t origin;
+    uint32_t next_hop;
+    uint32_t med;
+    uint32_t local_pref;
+    // attribute* next; // TODO 複数の属性を持たせられるように
+};
+
 int main(){
     print_address_binary(inet_addr("10.20.30.0"));
     print_address_binary(inet_addr("10.20.40.0"));
