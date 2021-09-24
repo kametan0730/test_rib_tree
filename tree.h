@@ -3,13 +3,11 @@
 
 #define TEST_RIB_TREE_TEST_TREE
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <cstdint>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netinet/in.h>
 
 template <typename DATA_TYPE>
 struct node{
@@ -64,11 +62,8 @@ void delete_prefix(node<DATA_TYPE>* prefix, bool is_delete_child_prefix = false)
     }
     node<DATA_TYPE>* tmp;
     if(is_delete_child_prefix and prefix->node_1 != nullptr and prefix->node_0 != nullptr){
-        /*
-        tmp = prefix->node_1; tmpをnode_1にするとなぜか全経路削除の時に free(): double free detected in tcache 2 でAbortedする
-        prefix->node_1 = nullptr; 追記: いや、今でも発生する
-        */
         tmp = prefix->node_0;
+        tmp->parent = nullptr;
         prefix->node_0 = nullptr;
         delete_prefix(prefix, true);
         return delete_prefix(tmp, true);
@@ -100,7 +95,7 @@ void delete_prefix(node<DATA_TYPE>* prefix, bool is_delete_child_prefix = false)
 template <typename DATA_TYPE>
 node<DATA_TYPE>* search_prefix(node<DATA_TYPE>* root, uint32_t address, uint8_t max_prefix_len = 32, bool is_prefix_strict = false){
     node<DATA_TYPE>* current = root;
-    node<DATA_TYPE>* next;
+    node<DATA_TYPE>* next = nullptr;
     node<DATA_TYPE>* match_node = root;
     uint8_t i = 0;
     while(i < max_prefix_len){
@@ -114,8 +109,11 @@ node<DATA_TYPE>* search_prefix(node<DATA_TYPE>* root, uint32_t address, uint8_t 
         if(next->is_prefix){
             match_node = next;
         }
-        i++;
         current = next;
+        i++;
+    }
+    if(is_prefix_strict and max_prefix_len != 0 and match_node->prefix_len == 0){
+        return nullptr;
     }
     return match_node;
 }
