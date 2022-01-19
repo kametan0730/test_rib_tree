@@ -20,7 +20,9 @@ struct node{
     node* node_1 = nullptr;
 };
 
-bool check_bit(uint32_t addr, uint8_t n);
+
+#define CHECK_BIT(A, B) (((A) >> (31 - (B))) & 0b01)
+
 void print_address_binary(uint32_t addr);
 
 template <typename DATA_TYPE>
@@ -99,7 +101,7 @@ node<DATA_TYPE>* search_prefix(node<DATA_TYPE>* root, uint32_t address, uint8_t 
     node<DATA_TYPE>* match_node = root;
     uint8_t i = 0;
     while(i < max_prefix_len){
-        next = (check_bit(address, i) ? current->node_1 : current->node_0);
+        next = (CHECK_BIT(address, i) ? current->node_1 : current->node_0);
         if(next == nullptr){
             if(is_prefix_strict){
                 return nullptr;
@@ -136,7 +138,7 @@ node<DATA_TYPE>* add_prefix(node<DATA_TYPE>* root, uint32_t prefix, uint8_t pref
 #endif
     node<DATA_TYPE>** growth_address_ptr;
     while(current_prefix_len < prefix_len - 1){ // 枝を伸ばす
-        if(check_bit(prefix, current_prefix_len)){
+        if(CHECK_BIT(prefix, current_prefix_len)){
             growth_address_ptr = &current->node_1;
         }else{
             growth_address_ptr = &current->node_0;
@@ -155,7 +157,7 @@ node<DATA_TYPE>* add_prefix(node<DATA_TYPE>* root, uint32_t prefix, uint8_t pref
             growth_node->parent = current;
             growth_node->node_0 = nullptr;
             growth_node->node_1 = nullptr;
-            if(check_bit(prefix, current_prefix_len)){
+            if(CHECK_BIT(prefix, current_prefix_len)){
                 growth_node->prefix |= (0b01 << (32 - (current_prefix_len + 1)));
                 current->node_1 = growth_node;
             }else{
@@ -169,7 +171,7 @@ node<DATA_TYPE>* add_prefix(node<DATA_TYPE>* root, uint32_t prefix, uint8_t pref
         current_prefix_len++;
     }
 
-    if(check_bit(prefix, prefix_len - 1)){
+    if(CHECK_BIT(prefix, prefix_len - 1)){
         growth_address_ptr = &current->node_1;
     }else{
         growth_address_ptr = &current->node_0;
@@ -182,7 +184,7 @@ node<DATA_TYPE>* add_prefix(node<DATA_TYPE>* root, uint32_t prefix, uint8_t pref
         }
         new_prefix->is_prefix = true;
         new_prefix->prefix = current->prefix;
-        if(check_bit(prefix, prefix_len-1)){
+        if(CHECK_BIT(prefix, prefix_len-1)){
             new_prefix->prefix |= (0b01 << (32 - prefix_len));
         }
 #ifdef TEST_RIB_TREE_TEST_TREE

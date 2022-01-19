@@ -12,9 +12,18 @@ struct attribute{
     // attribute* next; // TODO 複数の属性を持たせられるように
 };
 
+void print_address_binary(uint32_t addr){
+    for(int i = 31; i >= 0; --i){
+        if(CHECK_BIT(addr, i)){
+            printf("1");
+        }else{
+            printf("0");
+        }
+    }
+    printf("\n");
+}
+
 int main(){
-    print_address_binary(inet_addr("10.20.30.0"));
-    print_address_binary(inet_addr("10.20.40.0"));
 
     auto* root = (node<attribute>*) malloc(sizeof(node<attribute>));
     root->is_prefix = true;
@@ -24,6 +33,41 @@ int main(){
     root->parent = nullptr;
     root->node_0 = nullptr;
     root->node_1 = nullptr;
+
+    add_prefix<attribute>(root, ntohl(inet_addr("1.2.3.64")), 28, attribute{
+            .origin = 0,
+            .next_hop = inet_addr("1.1.1.1"),
+            .med = 0,
+            .local_pref = 0
+    }); // WAN
+
+    add_prefix<attribute>(root, ntohl(inet_addr("1.2.3.80")), 28, attribute{
+            .origin = 0,
+            .next_hop = inet_addr("2.2.2.2"),
+            .med = 0,
+            .local_pref = 0
+    });
+
+    add_prefix<attribute>(root, ntohl(inet_addr("0.0.0.0")), 0, attribute{
+            .origin = 0,
+            .next_hop = inet_addr("3.3.3.3"),
+            .med = 0,
+            .local_pref = 0
+    });
+
+
+    auto a = search_prefix(root, ntohl(inet_addr("203.178.139.248")));
+    std::cout << a->data->next_hop << std::endl;
+/*
+
+
+    add_prefix<attribute>(root, ntohl(inet_addr("10.20.0.0")), 16, attribute{
+            .origin = 0,
+            .next_hop = inet_addr("10.20.0.1"),
+            .med = 0,
+            .local_pref = 0
+    });
+
 
     //add_prefix(root, inet_addr("10.0.0.0"), 8, inet_addr("10.0.0.1"));
     add_prefix<attribute>(root, ntohl(inet_addr("10.20.0.0")), 16, attribute{
@@ -86,7 +130,7 @@ int main(){
 
     delete_prefix(n1);
 
-
+    */
     /*
     add_prefix(root, ntohl(inet_addr("103.247.181.0")), 24, inet_addr("103.247.181.1"));
     add_prefix(root, ntohl(inet_addr("103.247.181.224")), 28, inet_addr("103.247.181.224"));
